@@ -16,4 +16,4 @@ You can change some configurations on the php file:
     $default_image = 'identicon';
     $rating = "g";
 
-If you wanna know more about the configuration parameters, take a look at <http://pt.gravatar.com/site/implement/images/>
+If you wanna know more about the configuration parameters, take a look at <http://gravatar.com/site/implement/images/>
