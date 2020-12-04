@@ -1,0 +1,94 @@
+name: Create Release
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.15
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: go get
+
+    - name: Build for Linux
+      run: GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"
+
+    - name: Zip Linux Build
+      uses: papeloto/action-zip@v1
+      with:
+        files: get-random-gravatar
+        dest: get-random-gravatar-linux-amd64.zip
+
+    - name: Build for MacOS
+      run: GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w"
+
+    - name: Zip MacOS Build
+      uses: papeloto/action-zip@v1
+      with:
+        files: get-random-gravatar
+        dest: get-random-gravatar-darwin-amd64.zip
+
+    - name: Build for Windows
+      run: GOOS=windows GOARCH=amd64 go build -ldflags="-s -w"
+
+    - name: Zip Windows Build
+      uses: papeloto/action-zip@v1
+      with:
+        files: get-random-gravatar.exe
+        dest: get-random-gravatar-windows-amd64.zip
+  
+    - name: Create Draft Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: true
+        prerelease: false
+
+    - name: Upload Linux Release
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: get-random-gravatar-linux-amd64.zip
+        asset_name: get-random-gravatar-linux-amd64.zip
+        asset_content_type: application/zip
+
+    - name: Upload MacOS Release
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: get-random-gravatar-darwin-amd64.zip
+        asset_name: get-random-gravatar-darwin-amd64.zip
+        asset_content_type: application/zip
+
+    - name: Upload Windows Release
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: get-random-gravatar-windows-amd64.zip
+        asset_name: get-random-gravatar-windows-amd64.zip
+        asset_content_type: application/zip
+
+    - name: Publish Release
+      uses: eregon/publish-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
